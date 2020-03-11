@@ -1,25 +1,17 @@
 var express = require("express");
 var app = express();
 var request = require("request");
-var ejs = require("ejs");
 var bodyParser = require("body-parser");
 var passport = require("passport");
-var passportLocalMongoose = require("passport-local-mongoose");
 var methodOverride = require("method-override");
 
 var mongoose = require("mongoose");
 var flash = require("connect-flash");
 var session = require('express-session');
-var RedisStore = require('connect-redis')(session);
-var Redis = require('ioredis');
 const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
-const ExtractJWT = passportJWT.ExtractJwt;
 
-var Campground = require("./models/campground");
-var Comment = require("./models/comment");
 var User = require("./models/user");
-var seedDB = require("./models/seed.js");
 
 var campgroundRoutes = require("./routes/campgrounds");
 var commentRoutes = require("./routes/comments");
@@ -29,7 +21,7 @@ var indexRoutes = require("./routes/index");
 mongoose.connect("mongodb+srv://sree2chin:sree2chin@ihm-alumni-1-ccuob.gcp.mongodb.net/test?retryWrites=true&w=majority");
 
 // auth setup
-app.use(require("express-session")({
+app.use(session({
     secret: "could be anything",
     resave: false,
     saveUninitialized: false
@@ -84,11 +76,7 @@ app.set('port', (process.env.PORT || 2001));
 
 app.use(express.static(__dirname + '/public')); 
 
-// views is directory for all template files
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
 app.use(methodOverride("_method"));
-
 
 app.use(bodyParser.urlencoded({
     extended: true

@@ -4,30 +4,11 @@ var passport = require("passport");
 var User = require("../models/user");
 var jwt = require('jsonwebtoken');
 
-// sample request
-// request("https://www.google.com", function(error, response, body){
-//  if(error) {
-//      console.log("some thing went wrong", error);
-//  } else {
-//      if(response.statusCode == 200) {
-//          console.log("worked");
-//          console.log(body);
-//      } else {
-//          console.log("failed");
-//      }
-//  }
-// })
-
-// Depricate
-// app.get("/dog", function(req, res) {
-//  res.send("Hello dog");
-// })
-
 router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
     res.render("index");
 });
-//         Auth routes
 
+//         Auth routes
 //show signup form
 router.get("/register", function(req, res) {
     res.render("users/register");
@@ -44,12 +25,6 @@ router.post("/register", function(req, res) {
             return res.redirect("register"); 
         } else {
             passport.authenticate("local", {session: false}, (err, user, info) => {
-                // req.flash("success", "Welcome to YelpCamp " + user.username);
-                // const token = jwt.sign(JSON.stringify({username, password}), "ihm-alumni-1");
-                // /** assign our jwt to the cookie */
-                // res.cookie('jwt', token, { httpOnly: true, secure: true });
-                // res.status(200).send({ token });
-
                 req.login(user, {session: false}, (err) => {
                     if (err) {
                         res.send(err);
