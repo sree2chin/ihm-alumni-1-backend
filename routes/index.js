@@ -9,12 +9,7 @@ router.get("/", passport.authenticate('jwt', {session: false}), function(req, re
 });
 
 //         Auth routes
-//show signup form
-router.get("/register", function(req, res) {
-    res.render("users/register");
-});
-
-router.post("/register", function(req, res) {
+router.post("/v1/api/register", function(req, res) {
     var username = req.body.username;
     var password = req.body.password;
     var newUser = new User({username});
@@ -25,51 +20,54 @@ router.post("/register", function(req, res) {
             return res.redirect("register"); 
         } else {
             passport.authenticate("local", {session: false}, (err, user, info) => {
-                req.login(user, {session: false}, (err) => {
-                    if (err) {
-                        res.send(err);
-                    }
+                if (err) {
+                    res.send(err);
+                } else {
                     // generate a signed son web token with the contents of user object and return it in the response
                     console.log("user.id ", user.id);
                     console.log("email ", user.username);
                     const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
                     return res.json({user: user.username, token});
-                });
+                }
             })(req, res)
         }
     });
     // res.send("register post route");
 });
 
-// login routes
-router.get("/login", function(req, res) {
-    res.render("users/login");
-});
-
 router.post(
-    "/login", (req, res) => {
-        passport.authenticate("local", {
-            successRedirect: "/campgrounds",
-            failureRedirect: "/login"
-        }, (err, user) => {
-            const token = jwt.sign(JSON.stringify(user), "ihm-alumni-1");
-
-            /** assign our jwt to the cookie */
-            res.cookie('jwt', token, { httpOnly: true, secure: true });
-            res.status(200).send({ token });
-        })(req, res),
-        function(req, res) {
-            console.log("In login route");
+    "/v1/api/login", (req, res) => {
+        try {
+            if (!req.body.username || !req.body.password) {
+                return res.status(400).json({
+                    message: 'Something is not right with your input'
+                });
+            }
+            passport.authenticate('local', {session: false}, (err, user, info) => {
+                if (err || !user) {
+                    return res.status(400).json({
+                        message: 'Something went wrong, please try again',
+                        user   : user
+                    });
+                } else {
+                    if (err) {
+                        res.send(err);
+                    }
+                    console.log("user.id ", user.id);
+                    console.log("email ", user.username);
+                    const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
+                    return res.json({user: user.username, token});
+                }
+            })(req, res);
+        }
+        catch(err){
+            console.log(err);
+            return res.status(501).json({
+                message: 'Something went wrong, please try again'
+            });
         }
     }
-    
 );
-
-router.get("/logout", function(req, res) {
-    req.logout();
-    req.flash("success", "Logged you out!")
-    res.redirect("/campgrounds");
-});
 
 // middleware
 function isLoggedIn(req, res, next) {
