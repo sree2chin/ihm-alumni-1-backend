@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
+var jwt = require('jsonwebtoken');
 
 // sample request
 // request("https://www.google.com", function(error, response, body){
@@ -22,7 +23,7 @@ var User = require("../models/user");
 //  res.send("Hello dog");
 // })
 
-router.get("/", function(req, res) {
+router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
     res.render("index");
 });
 //         Auth routes
@@ -32,18 +33,34 @@ router.get("/register", function(req, res) {
     res.render("users/register");
 });
 
-router.post ("/register", function(req, res) {
-    var newUser = new User({username: req.body.username});
-    User.register(newUser, req.body.password, function(err, user){
+router.post("/register", function(req, res) {
+    var username = req.body.username;
+    var password = req.body.password;
+    var newUser = new User({username});
+    User.register(newUser, password, function(err, user){
         if(err) {
             console.log(err);
             req.flash("error", err.message);
             return res.redirect("register"); 
         } else {
-            passport.authenticate("local")(req, res, function(){
-                req.flash("success", "Welcome to YelpCamp " + user.username);
-                res.redirect("/campgrounds");
-            })
+            passport.authenticate("local", {session: false}, (err, user, info) => {
+                // req.flash("success", "Welcome to YelpCamp " + user.username);
+                // const token = jwt.sign(JSON.stringify({username, password}), "ihm-alumni-1");
+                // /** assign our jwt to the cookie */
+                // res.cookie('jwt', token, { httpOnly: true, secure: true });
+                // res.status(200).send({ token });
+
+                req.login(user, {session: false}, (err) => {
+                    if (err) {
+                        res.send(err);
+                    }
+                    // generate a signed son web token with the contents of user object and return it in the response
+                    console.log("user.id ", user.id);
+                    console.log("email ", user.username);
+                    const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
+                    return res.json({user: user.username, token});
+                });
+            })(req, res)
         }
     });
     // res.send("register post route");
@@ -55,14 +72,22 @@ router.get("/login", function(req, res) {
 });
 
 router.post(
-    "/login",
-    passport.authenticate("local", {
-        successRedirect: "/campgrounds",
-        failureRedirect: "/login"
-    }),
-    function(req, res) {
-        console.log("In login route");
+    "/login", (req, res) => {
+        passport.authenticate("local", {
+            successRedirect: "/campgrounds",
+            failureRedirect: "/login"
+        }, (err, user) => {
+            const token = jwt.sign(JSON.stringify(user), "ihm-alumni-1");
+
+            /** assign our jwt to the cookie */
+            res.cookie('jwt', token, { httpOnly: true, secure: true });
+            res.status(200).send({ token });
+        })(req, res),
+        function(req, res) {
+            console.log("In login route");
+        }
     }
+    
 );
 
 router.get("/logout", function(req, res) {
@@ -86,5 +111,13 @@ router.get("/dynamic/:dynamic", function(req, res) {
     console.log(req.params);
     res.send("dynamic");
 })
+
+router.get("/test-connection", function(req, res) {
+    res.send({status: 200, success: true, server: "ihm-alumni-1-backend"});
+});
+
+router.get("/test-connection2", passport.authenticate('jwt', {session: false}), function(req, res) {
+    res.send({status: 200, success: true, server: "ihm-alumni-1-backend"});
+});
 
 module.exports = router;

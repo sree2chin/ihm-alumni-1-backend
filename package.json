@@ -6,17 +6,20 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "connect-flash": "^0.1.1",
+    "connect-redis": "~2.3.0",
     "ejs": "^2.5.7",
     "express": "^4.17.1",
+    "express-jwt": "^5.3.1",
     "express-session": "^1.17.0",
+    "ioredis": "^4.9.0",
+    "jsonwebtoken": "^8.5.1",
     "method-override": "^2.3.10",
     "mongoose": "^5.8.11",
     "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^4.2.1",
-    "request": "^2.81.0",
-    "connect-redis": "~2.3.0",
-    "ioredis": "^4.9.0"
+    "request": "^2.81.0"
   },
   "devDependencies": {},
   "scripts": {
