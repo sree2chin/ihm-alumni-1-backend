@@ -8,11 +8,24 @@ router.get("/", passport.authenticate('jwt', {session: false}), function(req, re
     res.render("index");
 });
 
+// no authentication needed here
+router.get("/v1/api/profile/:username", function(req, res) {
+    console.log("req.params ", req.params);
+    User.findByUsername(req.params.username, (err, user) => {
+        res.send({status: 200, ...JSON.parse(JSON.stringify(user))});
+    });
+});
+
 //         Auth routes
 router.post("/v1/api/register", function(req, res) {
+    console.log("req.body ", req.body);
     var username = req.body.username;
     var password = req.body.password;
-    var newUser = new User({username});
+    var name = req.body.name;
+    var college = req.body.college;
+    var newUser = new User({
+        username, name, type: "client", data: { college }
+    });
     User.register(newUser, password, function(err, user){
         if(err) {
             console.log(err);
@@ -21,18 +34,19 @@ router.post("/v1/api/register", function(req, res) {
         } else {
             passport.authenticate("local", {session: false}, (err, user, info) => {
                 if (err) {
+                    console.log("register call failure user ");
                     res.send(err);
                 } else {
+                    const userObj = JSON.parse(JSON.stringify(user));
+                    if (userObj.hash) delete userObj.hash;
+                    if (userObj.salt) delete userObj.salt;
                     // generate a signed son web token with the contents of user object and return it in the response
-                    console.log("user.id ", user.id);
-                    console.log("email ", user.username);
                     const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
-                    return res.json({user: user.username, token});
+                    return res.json({ ...userObj, token});
                 }
             })(req, res)
         }
     });
-    // res.send("register post route");
 });
 
 router.post(
@@ -53,10 +67,14 @@ router.post(
                     if (err) {
                         res.send(err);
                     }
-                    console.log("user.id ", user.id);
-                    console.log("email ", user.username);
+                    console.log("login user ", user);
+                    const userObj = JSON.parse(JSON.stringify(user));
+                    if (userObj.hash) delete userObj.hash;
+                    if (userObj.salt) delete userObj.salt;
+                    // generate a signed son web token with the contents of user object and return it in the response
                     const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
-                    return res.json({user: user.username, token});
+                    console.log("login user userObj", userObj);
+                    return res.json({ ...userObj, token});
                 }
             })(req, res);
         }
