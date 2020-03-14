@@ -20,3 +20,9 @@ To run, follow these steps:
 
 Usage:
 On register and login, user token will be sent as response, store that in front end and send it back in header with key name "token".
+
+For user register|login|update, there are routes in routes/index.js
+
+For reference there are sample models/routes(campgrounds and comments).
+
+
