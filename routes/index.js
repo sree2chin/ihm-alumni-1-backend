@@ -3,6 +3,8 @@ var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
 var jwt = require('jsonwebtoken');
+const passportJWT = require('passport-jwt');
+const JWTStrategy = passportJWT.Strategy;
 
 router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
     res.render("index");
@@ -22,20 +24,25 @@ router.post("/v1/api/register", function(req, res) {
     var username = req.body.username;
     var password = req.body.password;
     var name = req.body.name;
-    var college = req.body.college;
+    var phoneNumber = req.body.phoneNumber;
     var newUser = new User({
-        username, name, type: "client", data: { college }
+        username,
+        name,
+        type: "student",
+        data: { 
+            phoneNumber: phoneNumber
+        }
     });
+    if (!username || !password || !name || !phoneNumber) {
+        return res.status(400).json({ status: 400, message: "Please enter all fields" });
+    }
     User.register(newUser, password, function(err, user){
         if(err) {
-            console.log(err);
-            req.flash("error", err.message);
-            return res.redirect("register"); 
+            return res.json({status: 400, message: "Something went wrong", error: err}); 
         } else {
             passport.authenticate("local", {session: false}, (err, user, info) => {
                 if (err) {
-                    console.log("register call failure user ");
-                    res.send(err);
+                   return res.json({status: 400, message: "Something went wrong with authentication", error: err});
                 } else {
                     const userObj = JSON.parse(JSON.stringify(user));
                     if (userObj.hash) delete userObj.hash;
@@ -49,12 +56,42 @@ router.post("/v1/api/register", function(req, res) {
     });
 });
 
+router.post("/v1/api/user/update", function(req, res) {
+    passport.authenticate('jwt', {session: false}, (err, user, info) => {
+        var newUser = {
+            name: req.body.name,
+            data: { 
+                phoneNumber: req.body.phoneNumber,
+                university: req.body.university,
+                hallTicketNumber: req.body.hallTicketNumber,
+                college: req.body.college,
+                course: req.body.course,
+                batchStartYear: req.body.batchStartYear,
+                batchEndYear: req.body.batchEndYear,
+                passOutYear: req.body.passOutYear,
+                ignouNumber: req.body.ignouNumber,
+                aadhaarNumber: req.body.aadhaarNumber
+            }
+        };
+        User.findByIdAndUpdate(user._id, newUser, { new: true})
+          .then(user => {
+            const userObj = JSON.parse(JSON.stringify(user));
+            if (userObj.hash) delete userObj.hash;
+            if (userObj.salt) delete userObj.salt;
+            return res.json({ ...userObj });
+          })
+          .catch(err => {
+            return res.status(400).json({ status: 400, message: "Something went wrong" });
+          });
+    })(req, res);
+});
+
 router.post(
     "/v1/api/login", (req, res) => {
         try {
             if (!req.body.username || !req.body.password) {
                 return res.status(400).json({
-                    message: 'Something is not right with your input'
+                    message: 'Please enter all fields'
                 });
             }
             passport.authenticate('local', {session: false}, (err, user, info) => {
@@ -67,19 +104,16 @@ router.post(
                     if (err) {
                         res.send(err);
                     }
-                    console.log("login user ", user);
                     const userObj = JSON.parse(JSON.stringify(user));
                     if (userObj.hash) delete userObj.hash;
                     if (userObj.salt) delete userObj.salt;
                     // generate a signed son web token with the contents of user object and return it in the response
                     const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
-                    console.log("login user userObj", userObj);
                     return res.json({ ...userObj, token});
                 }
             })(req, res);
         }
         catch(err){
-            console.log(err);
             return res.status(501).json({
                 message: 'Something went wrong, please try again'
             });
@@ -98,11 +132,7 @@ function isLoggedIn(req, res, next) {
 
 //         Auth routes XXX  
 
-router.get("/dynamic/:dynamic", function(req, res) {
-    console.log(req.params);
-    res.send("dynamic");
-})
-
+// test routes
 router.get("/test-connection", function(req, res) {
     res.send({status: 200, success: true, server: "ihm-alumni-1-backend"});
 });
