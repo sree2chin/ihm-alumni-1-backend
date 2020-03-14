@@ -129,7 +129,6 @@ function isLoggedIn(req, res, next) {
         res.redirect("/login");
     }
 }
-
 //         Auth routes XXX  
 
 // test routes
