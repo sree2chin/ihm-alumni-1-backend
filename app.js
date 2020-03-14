@@ -13,9 +13,9 @@ var User = require("./models/user");
 var campgroundRoutes = require("./routes/campgrounds");
 var commentRoutes = require("./routes/comments");
 var indexRoutes = require("./routes/index");
+var appConfig = require('./config/service.js');
 
-// mongoose.connect("mongodb://sree2chin:sree2chin@ds111124.mlab.com:11124/yelpcamp");
-mongoose.connect("mongodb+srv://sree2chin:sree2chin@ihm-alumni-1-ccuob.gcp.mongodb.net/test?retryWrites=true&w=majority");
+mongoose.connect(appConfig.getProperty("mongo_connect_url"));
 
 var LocalStrategy = require('passport-local').Strategy;
 app.use(passport.initialize());
@@ -33,7 +33,7 @@ passport.deserializeUser(User.deserializeUser());
 
 passport.use(new JWTStrategy({
     jwtFromRequest: req => { console.log("req from jwtStrategy ", req.headers); return req.headers.token },
-    secretOrKey   : 'ihm-alumni-1'
+    secretOrKey   : appConfig.getProperty("secret_key")
   },
   function (jwtPayload, cb) {
     console.log("jwtPayload ", jwtPayload);

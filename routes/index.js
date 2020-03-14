@@ -5,6 +5,7 @@ var User = require("../models/user");
 var jwt = require('jsonwebtoken');
 const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
+var appConfig = require('../config/service.js');
 
 router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
     res.render("index");
@@ -48,7 +49,7 @@ router.post("/v1/api/register", function(req, res) {
                     if (userObj.hash) delete userObj.hash;
                     if (userObj.salt) delete userObj.salt;
                     // generate a signed son web token with the contents of user object and return it in the response
-                    const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
+                    const token = jwt.sign({ id: user.id, email: user.username}, appConfig.getProperty("secret_key"));
                     return res.json({ ...userObj, token});
                 }
             })(req, res)
@@ -108,7 +109,7 @@ router.post(
                     if (userObj.hash) delete userObj.hash;
                     if (userObj.salt) delete userObj.salt;
                     // generate a signed son web token with the contents of user object and return it in the response
-                    const token = jwt.sign({ id: user.id, email: user.username}, 'ihm-alumni-1');
+                    const token = jwt.sign({ id: user.id, email: user.username}, appConfig.getProperty("secret_key"));
                     return res.json({ ...userObj, token});
                 }
             })(req, res);
@@ -133,11 +134,11 @@ function isLoggedIn(req, res, next) {
 
 // test routes
 router.get("/test-connection", function(req, res) {
-    res.send({status: 200, success: true, server: "ihm-alumni-1-backend"});
+    res.send({status: 200, success: true, server: "backend"});
 });
 
 router.get("/test-connection2", passport.authenticate('jwt', {session: false}), function(req, res) {
-    res.send({status: 200, success: true, server: "ihm-alumni-1-backend"});
+    res.send({status: 200, success: true, server: "backend"});
 });
 
 module.exports = router;

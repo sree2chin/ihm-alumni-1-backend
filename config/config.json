@@ -1,11 +1,10 @@
 {
     "development": {
-      "redis_url": "127.0.0.1",
-      "redis_port":6379
+      "mongo_connect_url": "mongodb+srv://sree2chin:sree2chin@ihm-alumni-1-ccuob.gcp.mongodb.net/test?retryWrites=true&w=majority",
+      "secret_key": "ihm-alumni-1"
     },
     "production": {
-      "redis_url": "127.0.0.1",
-      "redis_port":6379
+        "mongo_connect_url": "mongodb+srv://sree2chin:sree2chin@ihm-alumni-1-ccuob.gcp.mongodb.net/test?retryWrites=true&w=majority",
+        "secret_key": "ihm-alumni-1"
     }
 }
-  
