@@ -16,7 +16,10 @@
 
 To run, follow these steps:
 1) npm i
-2) npm run start
+2) change mongo_connect_url in config.json
+3) npm run start
+
+You can find the application running at localhost:2001
 
 Usage:
 On register and login, user token will be sent as response, store that in front end and send it back in header with key name "token".
