@@ -4,6 +4,7 @@ var passport = require("passport");
 var User = require("../models/user");
 var jwt = require('jsonwebtoken');
 var appConfig = require('../config/service.js');
+var utilsService = require('../services/utils.js');
 
 router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
     res.render("index");
@@ -34,6 +35,12 @@ router.post("/v1/api/register", function(req, res) {
     });
     if (!username || !password || !name || !phoneNumber) {
         return res.status(400).json({ status: 400, message: "Please enter all fields" });
+    } else if (!utilsService.validateEmail(username)) {
+        return res.status(400).json({ status: 400, message: "Please enter a valid email" });
+    } else if (!utilsService.validatePhoneNumber(phoneNumber)) {
+        return res.status(400).json({ status: 400, message: "Please enter a valid phone number" });
+    } else if (!utilsService.validatePassword(password)) {
+        return res.status(400).json({ status: 400, message: "Please enter a valid password. For reference, check guidelines below" });
     }
     User.register(newUser, password, function(err, user){
         if(err) {
@@ -82,6 +89,28 @@ router.post("/v1/api/user/update", function(req, res) {
           .catch(err => {
             return res.status(400).json({ status: 400, message: "Something went wrong" });
           });
+    })(req, res);
+});
+
+router.post("/v1/api/user/password/update", function(req, res) {
+    console.log("req.body ", req.body)
+    const newPassword = req.body.newPassword;
+    if (!req.body.oldPassword || !newPassword) {
+        return res.status(400).json({ status: 400, message: "Please enter all fields" });
+    }
+    if (!utilsService.validatePassword(newPassword)) {
+        return res.status(400).json({ status: 400, message: "Please enter a valid password. For reference, check guidelines below" });
+    }
+    passport.authenticate('jwt', {session: false}, (err, user, info) => {
+        user.changePassword(req.body.oldPassword, req.body.newPassword, (err, userInfo, info) => {
+            if (err) {
+                console.log("err ", err)
+                return res.status(400).json({status: 400, error: err});
+            } else {
+                console.log("user ", userInfo)
+                return res.json({status: 200, message: "Your password has been updated successfully"});
+            }
+        });
     })(req, res);
 });
 

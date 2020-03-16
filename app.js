@@ -31,7 +31,7 @@ passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password'
   },
-  User.authenticate()
+  User.authenticate() // this is because of passport-local-mongoose
 ));
 
 /*  Each subsequent request will not contain credentials, but rather the unique cookie that identifies
