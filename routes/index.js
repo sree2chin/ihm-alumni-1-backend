@@ -3,8 +3,6 @@ var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
 var jwt = require('jsonwebtoken');
-const passportJWT = require('passport-jwt');
-const JWTStrategy = passportJWT.Strategy;
 var appConfig = require('../config/service.js');
 
 router.get("/", passport.authenticate('jwt', {session: false}), function(req, res) {
@@ -87,6 +85,10 @@ router.post("/v1/api/user/update", function(req, res) {
     })(req, res);
 });
 
+/*
+    The verify callback for local authentication accepts username and password arguments,
+    which are submitted to the application via a login form.
+ */
 router.post(
     "/v1/api/login", (req, res) => {
         try {

@@ -17,10 +17,16 @@ var appConfig = require('./config/service.js');
 
 mongoose.connect(appConfig.getProperty("mongo_connect_url"));
 
+/* way for websites to authenticate users is via a username and password.
+   Support for this mechanism is provided by the passport-local module
+*/
 var LocalStrategy = require('passport-local').Strategy;
 app.use(passport.initialize());
-// app.use(passport.session());
 
+/* by default passport uses username and password, if we want to change
+   we can use below code
+   LocalStrategy can be replaced by custom method where we fetch user data and check password manually
+*/
 passport.use(new LocalStrategy({
     usernameField: 'username',
     passwordField: 'password'
@@ -28,6 +34,10 @@ passport.use(new LocalStrategy({
   User.authenticate()
 ));
 
+/*  Each subsequent request will not contain credentials, but rather the unique cookie that identifies
+    the session. In order to support login sessions, Passport will serialize and deserialize user
+    instances to and from the session.
+*/
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
